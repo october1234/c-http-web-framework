@@ -11,8 +11,12 @@ void root(const http_request_t *req, http_response_t *res) {
         printf("%s\n", header.value);
     }
 }
+void hello(const http_request_t *req, http_response_t *res) {
+    res->body = strdup("hello");
+}
 
 int main() {
     add_route("/", &root);
+    add_route("/hello", &hello);
     fw_start(8080);
 }

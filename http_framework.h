@@ -79,11 +79,14 @@ int fw_start(int port) {
 
         // Initialize some variables
         http_request_t *req = malloc(sizeof(http_request_t));
+        http_response_t *res = malloc(sizeof(http_response_t));
 
         // Parsing the request
-        parse(buffer, req);
+        if (parse(buffer, req) < 0) {
+            res->code = 400;
+            res->body = strdup("400 Bad Request");
+        }
 
-        http_response_t *res = malloc(sizeof(http_response_t));
 
         int found_route = 0;
         for (int i = 0; i < route_count; i++) {
@@ -97,12 +100,13 @@ int fw_start(int port) {
         if (found_route != 1) {
             res->code = 404;
             res->body = strdup("404 Not Found");
+            goto skip_to_end;
         }
 
-        if (res->body == NULL) res->body = strdup("");
-        size_t write_size = snprintf(NULL, 0, "HTTP/1.0 %d OK\r\nContent-Type: application/json\r\n\r\n%s", res->code, res->body);
+        skip_to_end: if (res->body == NULL) res->body = strdup("");
+        size_t write_size = snprintf(NULL, 0, "HTTP/1.0 %d OK\r\n\r\n%s", res->code, res->body);
         char *write_buffer = malloc(write_size + 1);
-        snprintf(write_buffer, write_size + 1, "HTTP/1.0 %d OK\r\nContent-Type: application/json\r\n\r\n%s", res->code, res->body);
+        snprintf(write_buffer, write_size + 1, "HTTP/1.0 %d OK\r\n\r\n%s", res->code, res->body);
         send(new_socket, write_buffer, write_size + 1, 0);
         close(new_socket);
         printf("%s\n", write_buffer);

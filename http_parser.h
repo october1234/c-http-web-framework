@@ -34,6 +34,8 @@ int parse(char* buffer, http_request_t* req) {
     char* body = strstr(buffer, "\r\n\r\n");
     if (body != NULL) {
         body += 4;
+    } else {
+        return -1;
     }
     // printf("body: %s\n", body);
     req->body = strdup(body);
